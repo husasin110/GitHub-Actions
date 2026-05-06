@@ -35,10 +35,16 @@ jobs:
         TF_VAR_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
         TF_VAR_tenant_id: ${{ secrets.ARM_TENANT_ID }}
 
+    - name: Upload tfplan
+      uses: actions/upload-artifact@v4
+      with:
+        name: tfplan
+        path: tfplan
+
   apply:
-    needs: terraform
+    needs: terraform   # 👈 IMPORTANT (runs after plan)
     runs-on: ubuntu-latest
-    environment: production   # 👈 THIS ENABLES APPROVAL
+    environment: production   # 👈 triggers approval
 
     steps:
     - uses: actions/checkout@v3
@@ -52,6 +58,11 @@ jobs:
         ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
         ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
         ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+    - name: Download tfplan
+      uses: actions/download-artifact@v4
+      with:
+        name: tfplan
 
     - name: Terraform Apply
       run: terraform apply -auto-approve tfplan

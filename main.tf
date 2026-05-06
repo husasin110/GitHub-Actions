@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 # Use existing Resource Group
 data "azurerm_resource_group" "rg" {
   name = "myRG-hussain"
@@ -73,7 +77,7 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
-# Attach NSG to NIC
+# Attach NSG
 resource "azurerm_network_interface_security_group_association" "nsg_assoc" {
   network_interface_id      = azurerm_network_interface.nic.id
   network_security_group_id = azurerm_network_security_group.nsg.id
@@ -159,7 +163,7 @@ resource "azurerm_lb_probe" "probe" {
   port            = 80
 }
 
-# Load Balancer Rule
+# Load Balancer Rule (FIXED)
 resource "azurerm_lb_rule" "rule" {
   loadbalancer_id                = azurerm_lb.lb.id
   name                           = "http-rule"
@@ -169,5 +173,4 @@ resource "azurerm_lb_rule" "rule" {
   frontend_ip_configuration_name = "PublicIP"
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.pool.id]
   probe_id                       = azurerm_lb_probe.probe.id
-}= azurerm_lb_probe.probe.id
 }

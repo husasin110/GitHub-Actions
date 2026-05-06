@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 # ✅ Use existing Resource Group
 data "azurerm_resource_group" "rg" {
   name = "myRG-hussain"
@@ -50,12 +54,13 @@ resource "azurerm_network_security_group" "nsg" {
   }
 }
 
-# ✅ Public IP for VM
+# ✅ Public IP for VM (FIXED)
 resource "azurerm_public_ip" "vm_ip" {
   name                = "vmPublicIP"
   location            = data.azurerm_resource_group.rg.location
   resource_group_name = data.azurerm_resource_group.rg.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"     # ✅ FIX
+  sku                 = "Standard"   # ✅ FIX
 }
 
 # ✅ NIC
@@ -168,4 +173,5 @@ resource "azurerm_lb_rule" "rule" {
   frontend_ip_configuration_name = "PublicIP"
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.pool.id]
   probe_id                       = azurerm_lb_probe.probe.id
+}
 }

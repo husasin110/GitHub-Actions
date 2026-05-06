@@ -1,56 +1,33 @@
-# Use existing Resource Group
+provider "azurerm" {
+  features {}
+}
+
+# Existing Resource Group
 data "azurerm_resource_group" "rg" {
   name = "myRG-hussain"
 }
 
-# Virtual Network
-resource "azurerm_virtual_network" "vnet" {
+# Existing Virtual Network
+data "azurerm_virtual_network" "vnet" {
   name                = "myVnet"
-  location            = data.azurerm_resource_group.rg.location
   resource_group_name = data.azurerm_resource_group.rg.name
-  address_space       = ["10.0.0.0/16"]
 }
 
-# Subnet
+# Create Subnet (new)
 resource "azurerm_subnet" "subnet" {
   name                 = "mySubnet"
   resource_group_name  = data.azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
+  virtual_network_name = data.azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-# Network Security Group
-resource "azurerm_network_security_group" "nsg" {
+# Existing NSG
+data "azurerm_network_security_group" "nsg" {
   name                = "myNSG"
-  location            = data.azurerm_resource_group.rg.location
   resource_group_name = data.azurerm_resource_group.rg.name
-
-  security_rule {
-    name                       = "Allow-HTTP"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "Allow-SSH"
-    priority                   = 110
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
 }
 
-# Public IP for VM
+# VM Public IP (new)
 resource "azurerm_public_ip" "vm_ip" {
   name                = "vmPublicIP"
   location            = data.azurerm_resource_group.rg.location
@@ -73,10 +50,10 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
-# Attach NSG
+# Attach existing NSG to NIC
 resource "azurerm_network_interface_security_group_association" "nsg_assoc" {
   network_interface_id      = azurerm_network_interface.nic.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
+  network_security_group_id = data.azurerm_network_security_group.nsg.id
 }
 
 # Linux VM with NGINX
@@ -116,16 +93,13 @@ EOF
   )
 }
 
-# Load Balancer Public IP
-resource "azurerm_public_ip" "lb_ip" {
+# Existing Load Balancer Public IP
+data "azurerm_public_ip" "lb_ip" {
   name                = "lbPublicIP"
-  location            = data.azurerm_resource_group.rg.location
   resource_group_name = data.azurerm_resource_group.rg.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
 }
 
-# Load Balancer
+# Load Balancer (new or existing config layer)
 resource "azurerm_lb" "lb" {
   name                = "myLB"
   location            = data.azurerm_resource_group.rg.location
@@ -134,7 +108,7 @@ resource "azurerm_lb" "lb" {
 
   frontend_ip_configuration {
     name                 = "PublicIP"
-    public_ip_address_id = azurerm_public_ip.lb_ip.id
+    public_ip_address_id = data.azurerm_public_ip.lb_ip.id
   }
 }
 
@@ -144,7 +118,7 @@ resource "azurerm_lb_backend_address_pool" "pool" {
   name            = "backendPool"
 }
 
-# Associate NIC to Load Balancer
+# Attach VM to LB
 resource "azurerm_network_interface_backend_address_pool_association" "lb_assoc" {
   network_interface_id    = azurerm_network_interface.nic.id
   ip_configuration_name   = "internal"
@@ -159,7 +133,7 @@ resource "azurerm_lb_probe" "probe" {
   port            = 80
 }
 
-# Load Balancer Rule (FIXED)
+# Load Balancer Rule
 resource "azurerm_lb_rule" "rule" {
   loadbalancer_id                = azurerm_lb.lb.id
   name                           = "http-rule"

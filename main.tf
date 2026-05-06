@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 # Existing Resource Group
 data "azurerm_resource_group" "rg" {
   name = "myRG-hussain"
@@ -97,28 +101,27 @@ data "azurerm_lb" "lb" {
   resource_group_name = data.azurerm_resource_group.rg.name
 }
 
-# Backend Pool (new)
-resource "azurerm_lb_backend_address_pool" "pool" {
-  loadbalancer_id = data.azurerm_lb.lb.id
+# Existing Backend Pool
+data "azurerm_lb_backend_address_pool" "pool" {
   name            = "backendPool"
+  loadbalancer_id = data.azurerm_lb.lb.id
 }
 
-# Attach VM to LB
+# Attach VM to existing backend pool
 resource "azurerm_network_interface_backend_address_pool_association" "lb_assoc" {
   network_interface_id    = azurerm_network_interface.nic.id
   ip_configuration_name   = "internal"
-  backend_address_pool_id = azurerm_lb_backend_address_pool.pool.id
+  backend_address_pool_id = data.azurerm_lb_backend_address_pool.pool.id
 }
 
-# Health Probe (new)
-resource "azurerm_lb_probe" "probe" {
-  loadbalancer_id = data.azurerm_lb.lb.id
+# Existing Probe
+data "azurerm_lb_probe" "probe" {
   name            = "http-probe"
-  protocol        = "Tcp"
-  port            = 80
+  loadbalancer_id = data.azurerm_lb.lb.id
 }
 
-# LB Rule (new)
+# Existing LB Rule (optional – only if NOT exists)
+# If rule already exists → COMMENT THIS BLOCK
 resource "azurerm_lb_rule" "rule" {
   loadbalancer_id                = data.azurerm_lb.lb.id
   name                           = "http-rule"
@@ -126,6 +129,6 @@ resource "azurerm_lb_rule" "rule" {
   frontend_port                  = 80
   backend_port                   = 80
   frontend_ip_configuration_name = "PublicIP"
-  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.pool.id]
-  probe_id                       = azurerm_lb_probe.probe.id
+  backend_address_pool_ids       = [data.azurerm_lb_backend_address_pool.pool.id]
+  probe_id                       = data.azurerm_lb_probe.probe.id
 }

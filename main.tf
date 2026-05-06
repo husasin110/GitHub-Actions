@@ -170,4 +170,3 @@ resource "azurerm_lb_rule" "rule" {
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.pool.id]
   probe_id                       = azurerm_lb_probe.probe.id
 }
-}

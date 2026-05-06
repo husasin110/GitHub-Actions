@@ -1,7 +1,3 @@
-provider "azurerm" {
-  features {}
-}
-
 # Existing Resource Group
 data "azurerm_resource_group" "rg" {
   name = "myRG-hussain"

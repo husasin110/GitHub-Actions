@@ -1,8 +1,14 @@
+provider "azurerm" {
+  features {}
+}
+
+# Resource Group
 resource "azurerm_resource_group" "rg" {
   name     = "example-rg"
   location = "East US"
 }
 
+# Virtual Network
 resource "azurerm_virtual_network" "vnet" {
   name                = "example-vnet"
   address_space       = ["10.0.0.0/16"]
@@ -10,6 +16,7 @@ resource "azurerm_virtual_network" "vnet" {
   resource_group_name = azurerm_resource_group.rg.name
 }
 
+# Subnet
 resource "azurerm_subnet" "subnet" {
   name                 = "example-subnet"
   resource_group_name  = azurerm_resource_group.rg.name
@@ -17,6 +24,7 @@ resource "azurerm_subnet" "subnet" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
+# Public IP
 resource "azurerm_public_ip" "pip" {
   name                = "example-pip"
   location            = azurerm_resource_group.rg.location
@@ -25,6 +33,7 @@ resource "azurerm_public_ip" "pip" {
   sku                 = "Standard"
 }
 
+# Load Balancer
 resource "azurerm_lb" "lb" {
   name                = "example-lb"
   location            = azurerm_resource_group.rg.location
@@ -37,19 +46,21 @@ resource "azurerm_lb" "lb" {
   }
 }
 
-# ✅ FIXED (was data → now resource)
+# Health Probe
 resource "azurerm_lb_probe" "probe" {
-  name                = "example-probe"
-  loadbalancer_id     = azurerm_lb.lb.id
-  protocol            = "Tcp"
-  port                = 80
+  name            = "example-probe"
+  loadbalancer_id = azurerm_lb.lb.id
+  protocol        = "Tcp"
+  port            = 80
 }
 
+# Backend Pool
 resource "azurerm_lb_backend_address_pool" "bpool" {
   name            = "example-bpool"
   loadbalancer_id = azurerm_lb.lb.id
 }
 
+# Load Balancer Rule
 resource "azurerm_lb_rule" "lbrule" {
   name                           = "example-rule"
   loadbalancer_id                = azurerm_lb.lb.id

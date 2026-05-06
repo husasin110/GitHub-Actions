@@ -10,13 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.6.6
+    - uses: hashicorp/setup-terraform@v3
 
     - name: Terraform Init
       run: terraform init
@@ -38,6 +34,24 @@ jobs:
         TF_VAR_client_secret: ${{ secrets.ARM_CLIENT_SECRET }}
         TF_VAR_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
         TF_VAR_tenant_id: ${{ secrets.ARM_TENANT_ID }}
+
+  apply:
+    needs: terraform
+    runs-on: ubuntu-latest
+    environment: production   # 👈 THIS ENABLES APPROVAL
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: hashicorp/setup-terraform@v3
+
+    - name: Terraform Init
+      run: terraform init
+      env:
+        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
 
     - name: Terraform Apply
       run: terraform apply -auto-approve tfplan

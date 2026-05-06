@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 # Resource Group
 resource "azurerm_resource_group" "rg" {
   name     = "final-rg"
@@ -20,7 +24,7 @@ resource "azurerm_subnet" "subnet" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-# Network Security Group (allow 80 + 22)
+# Network Security Group
 resource "azurerm_network_security_group" "nsg" {
   name                = "final-nsg"
   location            = azurerm_resource_group.rg.location
@@ -51,7 +55,7 @@ resource "azurerm_network_security_group" "nsg" {
   }
 }
 
-# Public IP (for LB)
+# Public IP
 resource "azurerm_public_ip" "pip" {
   name                = "final-pip"
   location            = azurerm_resource_group.rg.location
@@ -112,7 +116,7 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
-# Attach NSG to NIC
+# Attach NSG
 resource "azurerm_network_interface_security_group_association" "nsg_assoc" {
   network_interface_id      = azurerm_network_interface.nic.id
   network_security_group_id = azurerm_network_security_group.nsg.id
@@ -162,8 +166,7 @@ EOF
   )
 }
 
-# Output Public IP
+# ✅ FIXED OUTPUT (no syntax error)
 output "public_ip" {
   value = azurerm_public_ip.pip.ip_address
-}azurerm_lb_probe.probe.id
 }

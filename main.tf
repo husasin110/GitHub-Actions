@@ -1,9 +1,13 @@
-# ✅ Use existing Resource Group
+provider "azurerm" {
+  features {}
+}
+
+# Use existing Resource Group
 data "azurerm_resource_group" "rg" {
   name = "myRG-hussain"
 }
 
-# ✅ Virtual Network
+# Virtual Network
 resource "azurerm_virtual_network" "vnet" {
   name                = "myVnet"
   location            = data.azurerm_resource_group.rg.location
@@ -11,7 +15,7 @@ resource "azurerm_virtual_network" "vnet" {
   address_space       = ["10.0.0.0/16"]
 }
 
-# ✅ Subnet
+# Subnet
 resource "azurerm_subnet" "subnet" {
   name                 = "mySubnet"
   resource_group_name  = data.azurerm_resource_group.rg.name
@@ -19,7 +23,7 @@ resource "azurerm_subnet" "subnet" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-# ✅ Network Security Group
+# Network Security Group
 resource "azurerm_network_security_group" "nsg" {
   name                = "myNSG"
   location            = data.azurerm_resource_group.rg.location
@@ -50,16 +54,16 @@ resource "azurerm_network_security_group" "nsg" {
   }
 }
 
-# ✅ Public IP for VM (FIXED)
+# Public IP for VM
 resource "azurerm_public_ip" "vm_ip" {
   name                = "vmPublicIP"
   location            = data.azurerm_resource_group.rg.location
   resource_group_name = data.azurerm_resource_group.rg.name
-  allocation_method   = "Static"     # ✅ FIX
-  sku                 = "Standard"   # ✅ FIX
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
-# ✅ NIC
+# Network Interface
 resource "azurerm_network_interface" "nic" {
   name                = "myNIC"
   location            = data.azurerm_resource_group.rg.location
@@ -73,13 +77,13 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
-# ✅ Attach NSG
+# Attach NSG to NIC
 resource "azurerm_network_interface_security_group_association" "nsg_assoc" {
   network_interface_id      = azurerm_network_interface.nic.id
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
-# ✅ Linux VM with NGINX
+# Linux VM with NGINX
 resource "azurerm_linux_virtual_machine" "vm" {
   name                = "nginxVM"
   resource_group_name = data.azurerm_resource_group.rg.name
@@ -91,7 +95,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   disable_password_authentication = false
 
   network_interface_ids = [
-    azurerm_network_interface.nic.id,
+    azurerm_network_interface.nic.id
   ]
 
   os_disk {
@@ -116,7 +120,7 @@ EOF
   )
 }
 
-# ✅ Load Balancer Public IP
+# Load Balancer Public IP
 resource "azurerm_public_ip" "lb_ip" {
   name                = "lbPublicIP"
   location            = data.azurerm_resource_group.rg.location
@@ -125,7 +129,7 @@ resource "azurerm_public_ip" "lb_ip" {
   sku                 = "Standard"
 }
 
-# ✅ Load Balancer
+# Load Balancer
 resource "azurerm_lb" "lb" {
   name                = "myLB"
   location            = data.azurerm_resource_group.rg.location
@@ -138,20 +142,20 @@ resource "azurerm_lb" "lb" {
   }
 }
 
-# ✅ Backend Pool
+# Backend Pool
 resource "azurerm_lb_backend_address_pool" "pool" {
   loadbalancer_id = azurerm_lb.lb.id
   name            = "backendPool"
 }
 
-# ✅ Attach VM to LB
+# Associate NIC to Load Balancer
 resource "azurerm_network_interface_backend_address_pool_association" "lb_assoc" {
   network_interface_id    = azurerm_network_interface.nic.id
   ip_configuration_name   = "internal"
   backend_address_pool_id = azurerm_lb_backend_address_pool.pool.id
 }
 
-# ✅ Health Probe
+# Health Probe
 resource "azurerm_lb_probe" "probe" {
   loadbalancer_id = azurerm_lb.lb.id
   name            = "http-probe"
@@ -159,7 +163,7 @@ resource "azurerm_lb_probe" "probe" {
   port            = 80
 }
 
-# ✅ Load Balancer Rule
+# Load Balancer Rule
 resource "azurerm_lb_rule" "rule" {
   loadbalancer_id                = azurerm_lb.lb.id
   name                           = "http-rule"
@@ -169,4 +173,5 @@ resource "azurerm_lb_rule" "rule" {
   frontend_ip_configuration_name = "PublicIP"
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.pool.id]
   probe_id                       = azurerm_lb_probe.probe.id
+}= azurerm_lb_probe.probe.id
 }
